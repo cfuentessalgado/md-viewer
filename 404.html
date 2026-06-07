@@ -79,7 +79,7 @@
       const encoded = firstUrlValue();
 
       if (!encoded) {
-        content.innerHTML = '<div class="empty">Add base64 markdown as the first query value, path segment, or hash.</div>';
+        content.innerHTML = '<div class="empty">Add base64 markdown after the hash, like <code>#SGVsbG8=</code>. Use hash URLs on GitHub Pages to avoid URI Too Long errors.</div>';
       } else {
         const markdown = decodeBase64(encoded);
         const html = marked.parse(markdown, { gfm: true, breaks: true });
