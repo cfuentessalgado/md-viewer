@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markdown Viewer</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      background: Canvas;
+      color: CanvasText;
+    }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+    pre, code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: color-mix(in srgb, CanvasText 8%, Canvas);
+    }
+    blockquote {
+      margin-left: 0;
+      padding-left: 1rem;
+      border-left: 4px solid color-mix(in srgb, CanvasText 25%, Canvas);
+      color: color-mix(in srgb, CanvasText 75%, Canvas);
+    }
+    img { max-width: 100%; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid color-mix(in srgb, CanvasText 20%, Canvas); padding: 0.4rem 0.6rem; }
+    .empty, .error {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: color-mix(in srgb, CanvasText 8%, Canvas);
+    }
+    .error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <main id="content"></main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script>
+    const content = document.getElementById('content');
+
+    function firstUrlValue() {
+      const params = new URLSearchParams(window.location.search);
+      const firstQueryValue = params.values().next().value;
+      if (firstQueryValue) return firstQueryValue;
+
+      const pathValue = window.location.pathname.split('/').filter(Boolean)[0];
+      if (pathValue) return pathValue;
+
+      return window.location.hash.replace(/^#/, '');
+    }
+
+    function decodeBase64(value) {
+      const normalized = decodeURIComponent(value)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/')
+        .padEnd(Math.ceil(value.length / 4) * 4, '=');
+
+      const binary = atob(normalized);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    try {
+      const encoded = firstUrlValue();
+
+      if (!encoded) {
+        content.innerHTML = '<div class="empty">Add base64 markdown as the first query value, path segment, or hash.</div>';
+      } else {
+        const markdown = decodeBase64(encoded);
+        const html = marked.parse(markdown, { gfm: true, breaks: true });
+        content.innerHTML = DOMPurify.sanitize(html);
+      }
+    } catch (error) {
+      content.innerHTML = `<div class="error">Could not decode/render markdown: ${error.message}</div>`;
+    }
+  </script>
+</body>
+</html>
